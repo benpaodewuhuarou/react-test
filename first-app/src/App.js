@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+import Search from './Search.js';
+import ListContainer from './ListContainer';
 import './App.css';
 
 class App extends Component {
@@ -7,9 +8,12 @@ class App extends Component {
     return (
       <div className="App container">
         <div className="row">
-          <div className="col-sm-8">One of three columns </div>{' '}
-          <div className="col-sm-2">One of three columns </div>{' '}
-          <div className="col-sm-2">One of three columns </div>{' '}
+          <div className="col-6">
+            <Search />
+          </div>
+          <div className="col-6">
+            <ListContainer />
+          </div>
         </div>{' '}
       </div>
     );

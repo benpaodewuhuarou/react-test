@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#000000">
+    <!--
+      manifest.json provides metadata used when your web app is added to the
+      homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
+    -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <title>React App</title>
+    <script src="./tota11y.min.js"></script>
+</head>
+
+
+<body>
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <div id="root"></div>
+
+    <div class="container">
+        <h1>Search For A Track</h1>
+        <p>Search For A Track</p>
+        <div class="input-group">
+            <label for="searchInput">
+              Label text here:
+          </label>
+            <input type="text" id="searchInput" class="form-control" placeholder="Input Here">
+        </div>
+        <button style="background-color:blue" class="btn btn-primary" id="btn-login">Search</button>
+        <div id="result"></div>
+    </div>
+
+    <div id="tracks">
+        Tack List
+    </div>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> -->
+    <script>
+        (function() {
+            async function getUserData() {
+                var data = $("#searchInput").val();
+                // var username = '55cd5b47cc2b4a44a33e5b37cc1e9f24';
+                // var password = '282a022974424e1db3a0b133e4698608';
+                // var auth = btoa(username + ":" + password);
+
+                var response = await $.ajax({
+                    url: "https://cs-554-spotify-proxy.herokuapp.com/api/token",
+                    headers: {
+                        'Authorization': 'Basic ' + 'NTVjZDViNDdjYzJiNGE0NGEzM2U1YjM3Y2MxZTlmMjQ6MjgyYTAyMjk3NDQyNGUxZGIzYTBiMTMzZTQ2OTg2MDg='
+                    },
+                    type: "post",
+                    data: {
+                        grant_type: "client_credentials"
+                    }
+                });
+
+                var keyToken = response.access_token;
+
+                return $.ajax({
+                    url: "https://cs-554-spotify-proxy.herokuapp.com/v1/search",
+                    headers: {
+                        'Authorization': 'Bearer ' + keyToken
+                    },
+                    data: {
+                        type: "track",
+                        q: data
+                    }
+                });
+            }
+
+            var loginButton = document.getElementById('btn-login');
+
+            loginButton.addEventListener('click', async function() {
+                var response = await getUserData();
+                var items = response.tracks.items;
+                if (items != null) {
+                    var divBody = $("#tracks");
+                    divBody.html("");
+                    for (var i = 0; i < items.length; i++) {
+                        var div = $("<div> Title:" + items[i].name + "</div>");
+                        $("<audio src='" + items[i].preview_url + "' controls='controls'></audio>").appendTo(div);
+                        div.addClass("card");
+                        var pArtist = $("<p>Artists:</p>").addClass("card-text");
+                        for (var j = 0; j < items[i].artists.length; j++) {
+                            if (j == items[i].artists.length - 1) {
+                                pArtist.html(pArtist.html() + items[i].artists[j].name + "<a href=" + items[i].artists[j].external_urls.spotify + ">" + items[i].artists[j].external_urls.spotify + "</a>");
+                            } else {
+                                pArtist.html(pArtist.html() + items[i].artists[j].name + " <a href='items[i].artists[j].external_urls.spotify'>" + items[i].artists[j].external_urls.spotify + "</a>" + "|");
+                            }
+                        }
+                        pArtist.appendTo(div);
+                        $("<img src='" + items[i].album.images[0].url + "' />").appendTo(div);
+                        $("<p>popularity:" + items[i].popularity + "</p>").appendTo(div);
+                        $("<p>name of the album:" + items[i].album.name + "</p>").appendTo(div);
+                        $("<p>url of the album:" + items[i].album.external_urls.spotify + "</p>").appendTo(div);
+                        div.appendTo(divBody);
+                    }
+                }
+            });
+
+        })();
+    </script>
+</body>
+
+</html>
